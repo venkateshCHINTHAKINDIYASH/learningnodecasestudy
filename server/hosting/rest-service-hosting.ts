@@ -2,7 +2,9 @@ import * as http from 'http';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 
+import UserProfileRouting from '../routing/userprofile-routing';
 import CustomerRouting from '../routing/customer-routing';
+import CorsProcessor from '../utilities/cors-processor';
 
 const DEFAULT_PORT: number = 9090;
 
@@ -11,6 +13,7 @@ class RestServiceHost {
     private httpServer: http.Server;
     private app: express.Express;
     private customerRouting: CustomerRouting = new CustomerRouting();
+    private userProfileRoutine: UserProfileRouting = new UserProfileRouting();
 
     constructor() {
         this.app = express();
@@ -20,8 +23,10 @@ class RestServiceHost {
     }
 
     private initializeMiddleware() {
+        this.app.use(CorsProcessor.applyCors);
         this.app.use(bodyParser.json());
         this.app.use('/api/customers', this.customerRouting.Router);
+        this.app.use('/authenticate', this.userProfileRoutine.Router);
     }
 
     start(): Promise<boolean> {
