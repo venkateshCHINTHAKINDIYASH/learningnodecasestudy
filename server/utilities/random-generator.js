@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const DEFAULT_MINIMUM = 0;
 const DEFAULT_MAXIMUM = 1000000;
 class RandomGenerator {
-    generate(minimum = DEFAULT_MINIMUM, maximum = DEFAULT_MAXIMUM) {
+    static generate(minimum = DEFAULT_MINIMUM, maximum = DEFAULT_MAXIMUM) {
         let generatedNumber = Math.floor(Math.random() * (maximum - minimum) + minimum);
         return generatedNumber;
     }

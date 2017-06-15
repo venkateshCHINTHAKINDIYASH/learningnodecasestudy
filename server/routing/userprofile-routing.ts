@@ -47,7 +47,6 @@ class UserProfileRouting {
                         });
                     }
                 } catch (error) {
-                    console.log('Error Occurred : ' + error);
                     response.status(HttpStatusCodes.CLIENT_ERROR).json(AUTH_FAILURE);
                 }
             });

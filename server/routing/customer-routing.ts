@@ -1,14 +1,22 @@
 import * as express from 'express';
+import * as socketio from 'socket.io';
 
 import InternetCustomer from '../models/internet-customer';
 import CustomerService from '../services/customer-service';
 import HttpStatusCodes from '../utilities/http-status-codes';
 
+const INVALID_SOCKET_SERVER_SPECIFIED: string = 'Invalid Socket Server Specified!';
+const NEW_CUSTOMER_EVENT: string = 'NewCustomerRecord';
+
 class CustomerRouting {
     private customerService: CustomerService = new CustomerService();
     private router: express.Router;
 
-    constructor() {
+    constructor(private socketServer: SocketIO.Server) {
+        if (!this.socketServer) {
+            throw new Error(INVALID_SOCKET_SERVER_SPECIFIED);
+        }
+
         this.router = express.Router();
         this.initializeRouting();
     }
@@ -43,7 +51,10 @@ class CustomerRouting {
             customer.__proto__ = new InternetCustomer;
 
             this.customerService.addNewCustomer(customer)
-                .then(result => response.status(HttpStatusCodes.OK).json(result))
+                .then(result => {
+                    this.socketServer.emit(NEW_CUSTOMER_EVENT, result);
+                    response.status(HttpStatusCodes.OK).json(result);
+                })
                 .catch(error => response.status(HttpStatusCodes.CLIENT_ERROR));
         });
     }

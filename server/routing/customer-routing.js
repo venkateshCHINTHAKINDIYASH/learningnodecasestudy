@@ -4,9 +4,15 @@ const express = require("express");
 const internet_customer_1 = require("../models/internet-customer");
 const customer_service_1 = require("../services/customer-service");
 const http_status_codes_1 = require("../utilities/http-status-codes");
+const INVALID_SOCKET_SERVER_SPECIFIED = 'Invalid Socket Server Specified!';
+const NEW_CUSTOMER_EVENT = 'NewCustomerRecord';
 class CustomerRouting {
-    constructor() {
+    constructor(socketServer) {
+        this.socketServer = socketServer;
         this.customerService = new customer_service_1.default();
+        if (!this.socketServer) {
+            throw new Error(INVALID_SOCKET_SERVER_SPECIFIED);
+        }
         this.router = express.Router();
         this.initializeRouting();
     }
@@ -33,7 +39,10 @@ class CustomerRouting {
             let customer = request.body;
             customer.__proto__ = new internet_customer_1.default;
             this.customerService.addNewCustomer(customer)
-                .then(result => response.status(http_status_codes_1.default.OK).json(result))
+                .then(result => {
+                this.socketServer.emit(NEW_CUSTOMER_EVENT, result);
+                response.status(http_status_codes_1.default.OK).json(result);
+            })
                 .catch(error => response.status(http_status_codes_1.default.CLIENT_ERROR));
         });
     }

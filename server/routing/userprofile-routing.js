@@ -44,7 +44,6 @@ class UserProfileRouting {
                 }
             }
             catch (error) {
-                console.log('Error Occurred : ' + error);
                 response.status(http_status_codes_1.default.CLIENT_ERROR).json(AUTH_FAILURE);
             }
         }));
