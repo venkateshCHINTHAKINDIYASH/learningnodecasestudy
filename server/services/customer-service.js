@@ -1,80 +1,67 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const internet_customer_1 = require("../models/internet-customer");
-const DEFAULT_TIMEOUT_PERIOD = 1000;
-const FOUND_INDEX_POS = 0;
-const MIN_CREDIT_LIMIT = 1000;
+const customer_schema_1 = require("../schemas/customer-schema");
 class CustomerService {
-    constructor() {
-        this.customers = [];
-        this.customers =
-            [
-                new internet_customer_1.default(11, 'Northwind Traders', 'Bangalore', 'info@ntw.com', '080-4089343', 23000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new internet_customer_1.default(12, 'Southwind Traders', 'Bangalore', 'info@ntw.com', '080-4089343', 23000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new internet_customer_1.default(13, 'Eastwind Traders', 'Bangalore', 'info@ntw.com', '080-4089343', 23000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new internet_customer_1.default(14, 'Westwind Traders', 'Mangalore', 'info@ntw.com', '080-4089343', 13000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new internet_customer_1.default(15, 'Oxyrich Traders', 'Mysore', 'info@ntw.com', '080-4089343', 23000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new internet_customer_1.default(16, 'Adventureworks', 'Bangalore', 'info@ntw.com', '080-4089343', 33000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new internet_customer_1.default(17, 'Footmart', 'Bangalore', 'info@ntw.com', '080-4089343', 23000, false, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new internet_customer_1.default(18, 'ePublishers', 'Hyderabad', 'info@ntw.com', '080-4089343', 43000, false, 'Simple Customer Record', 'http://blogs.msdn.com/nwt')
-            ];
-    }
     getCustomers() {
-        let promise = new Promise((resolve, reject) => {
-            setTimeout(() => {
-                resolve(this.customers);
-            }, DEFAULT_TIMEOUT_PERIOD);
-        });
+        let promise = new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                let customers = yield customer_schema_1.default.find({}).exec();
+                resolve(customers);
+            }
+            catch (error) {
+                reject(error);
+            }
+        }));
         return promise;
     }
     getCustomer(customerId) {
-        let promise = new Promise((resolve, reject) => {
-            let validation = false;
-            let filteredCustomer = null;
-            for (let customer of this.customers) {
-                if (customer && customer.customerId === customerId) {
-                    validation = true;
-                    filteredCustomer = customer;
-                    break;
-                }
-            }
-            if (!validation) {
-                reject({
-                    status: false
-                });
-                return;
-            }
-            if (typeof filteredCustomer !== 'undefined')
+        let promise = new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                let filteredCustomer = yield customer_schema_1.default.findOne({
+                    customerId: customerId
+                }).exec();
                 resolve(filteredCustomer);
-        });
+            }
+            catch (error) {
+                reject(error);
+            }
+        }));
         return promise;
     }
     getCustomersByName(customerName) {
-        let promise = new Promise((resolve, reject) => {
-            let filteredCustomers = this.customers.filter(customer => {
-                let validation = customer &&
-                    typeof customer.name !== 'undefined' &&
-                    customer.name.indexOf(customerName) >= FOUND_INDEX_POS;
-                return validation;
-            });
-            resolve(filteredCustomers);
-        });
+        let promise = new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                let searchStringRegExp = new RegExp(customerName);
+                let filteredCustomers = yield customer_schema_1.default.find({
+                    name: searchStringRegExp
+                }).exec();
+                resolve(filteredCustomers);
+            }
+            catch (error) {
+                reject(error);
+            }
+        }));
         return promise;
     }
     addNewCustomer(customer) {
-        let promise = new Promise((resolve, reject) => {
-            let validation = customer &&
-                customer.name && typeof customer.credit !== 'undefined' &&
-                customer.credit >= MIN_CREDIT_LIMIT;
-            if (!validation) {
-                reject({
-                    status: false
-                });
-                return;
+        let promise = new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                let newCustomerRecord = new customer_schema_1.default(customer);
+                let savedCustomerRecord = yield newCustomerRecord.save();
+                resolve(savedCustomerRecord);
             }
-            this.customers.push(customer);
-            resolve(customer);
-        });
+            catch (error) {
+                reject(error);
+            }
+        }));
         return promise;
     }
 }

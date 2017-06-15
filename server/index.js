@@ -5,7 +5,17 @@ let host = new rest_service_hosting_1.default();
 host.start()
     .then(result => console.log('REST Service Successfully Started ...'));
 process.on('exit', () => {
+    console.log('exiting ...');
     host.stop()
-        .then(result => console.log('REST Service Stopped!'));
+        .then(result => {
+        console.log('REST Service Stopped!');
+        process.exit();
+    });
 });
-process.on('SIGINT', () => host.stop());
+process.on('SIGINT', () => {
+    host.stop()
+        .then(result => {
+        console.log('REST Service Stopped!');
+        process.exit();
+    });
+});

@@ -9,7 +9,16 @@ host.start()
 process.on('exit',
     () => {
         host.stop()
-            .then(result => console.log('REST Service Stopped!'));
+            .then(result => {
+                process.exit();
+            });
     });
 
-process.on('SIGINT', () => host.stop());
+process.on('SIGINT', () => {
+    host.stop()
+        .then(result => {
+            console.log('REST Service Stopped!');
+            
+            process.exit();
+        });
+});

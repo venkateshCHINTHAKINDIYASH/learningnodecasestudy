@@ -1,33 +1,18 @@
+import CustomerMappedModel from '../schemas/customer-schema';
 import InternetCustomer from '../models/internet-customer';
 import ICustomerService from './icustomer-service';
 
-const DEFAULT_TIMEOUT_PERIOD: number = 1000;
-const FOUND_INDEX_POS: number = 0;
-const MIN_CREDIT_LIMIT: number = 1000;
-
 class CustomerService implements ICustomerService {
-    private customers: InternetCustomer[] = [];
-
-    constructor() {
-        this.customers =
-            [
-                new InternetCustomer(11, 'Northwind Traders', 'Bangalore', 'info@ntw.com', '080-4089343', 23000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new InternetCustomer(12, 'Southwind Traders', 'Bangalore', 'info@ntw.com', '080-4089343', 23000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new InternetCustomer(13, 'Eastwind Traders', 'Bangalore', 'info@ntw.com', '080-4089343', 23000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new InternetCustomer(14, 'Westwind Traders', 'Mangalore', 'info@ntw.com', '080-4089343', 13000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new InternetCustomer(15, 'Oxyrich Traders', 'Mysore', 'info@ntw.com', '080-4089343', 23000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new InternetCustomer(16, 'Adventureworks', 'Bangalore', 'info@ntw.com', '080-4089343', 33000, true, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new InternetCustomer(17, 'Footmart', 'Bangalore', 'info@ntw.com', '080-4089343', 23000, false, 'Simple Customer Record', 'http://blogs.msdn.com/nwt'),
-                new InternetCustomer(18, 'ePublishers', 'Hyderabad', 'info@ntw.com', '080-4089343', 43000, false, 'Simple Customer Record', 'http://blogs.msdn.com/nwt')
-            ];
-    }
-
     getCustomers(): Promise<InternetCustomer[]> {
         let promise = new Promise<InternetCustomer[]>(
-            (resolve, reject) => {
-                setTimeout(() => {
-                    resolve(this.customers);
-                }, DEFAULT_TIMEOUT_PERIOD);
+            async (resolve, reject) => {
+                try {
+                    let customers = await CustomerMappedModel.find({}).exec();
+
+                    resolve(customers);
+                } catch (error) {
+                    reject(error);
+                }
             });
 
         return promise;
@@ -35,29 +20,16 @@ class CustomerService implements ICustomerService {
 
     getCustomer(customerId: number): Promise<InternetCustomer> {
         let promise = new Promise<InternetCustomer>(
-            (resolve, reject) => {
-                let validation: boolean = false;
-                let filteredCustomer = null;
+            async (resolve, reject) => {
+                try {
+                    let filteredCustomer = await CustomerMappedModel.findOne({
+                        customerId: customerId
+                    }).exec();
 
-                for (let customer of this.customers) {
-                    if (customer && customer.customerId === customerId) {
-                        validation = true;
-                        filteredCustomer = customer;
-
-                        break;
-                    }
-                }
-
-                if (!validation) {
-                    reject({
-                        status: false
-                    });
-
-                    return;
-                }
-
-                if (typeof filteredCustomer !== 'undefined')
                     resolve(<InternetCustomer>filteredCustomer);
+                } catch (error) {
+                    reject(error);
+                }
             });
 
         return promise;
@@ -65,18 +37,18 @@ class CustomerService implements ICustomerService {
 
     getCustomersByName(customerName: string): Promise<InternetCustomer[]> {
         let promise = new Promise<InternetCustomer[]>(
-            (resolve, reject) => {
-                let filteredCustomers =
-                    this.customers.filter(
-                        customer => {
-                            let validation = customer &&
-                                typeof customer.name !== 'undefined' &&
-                                customer.name.indexOf(customerName) >= FOUND_INDEX_POS;
+            async (resolve, reject) => {
+                try {
+                    let searchStringRegExp = new RegExp(customerName);
 
-                            return validation;
-                        });
+                    let filteredCustomers = await CustomerMappedModel.find({
+                        name: searchStringRegExp
+                    }).exec();
 
-                resolve(filteredCustomers);
+                    resolve(filteredCustomers);
+                } catch (error) {
+                    reject(error);
+                }
             });
 
         return promise;
@@ -84,21 +56,15 @@ class CustomerService implements ICustomerService {
 
     addNewCustomer(customer: InternetCustomer): Promise<InternetCustomer> {
         let promise = new Promise<InternetCustomer>(
-            (resolve, reject) => {
-                let validation = customer &&
-                    customer.name && typeof customer.credit !== 'undefined' &&
-                    customer.credit >= MIN_CREDIT_LIMIT;
+            async (resolve, reject) => {
+                try {
+                    let newCustomerRecord = new CustomerMappedModel(customer);
+                    let savedCustomerRecord = await newCustomerRecord.save();
 
-                if (!validation) {
-                    reject({
-                        status: false
-                    });
-                    return;
+                    resolve(savedCustomerRecord);
+                } catch (error) {
+                    reject(error);
                 }
-
-                this.customers.push(customer);
-
-                resolve(customer);
             });
 
         return promise;
