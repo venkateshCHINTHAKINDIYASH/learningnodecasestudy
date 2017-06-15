@@ -33,6 +33,7 @@ class UserProfileService {
                 }
             }
             if (filteredUserProfile) {
+                console.log('User Profile : ' + JSON.stringify(filteredUserProfile));
                 resolve(filteredUserProfile);
             }
             else {

@@ -1,15 +1,17 @@
 import * as express from 'express';
 
-import HttpStatusCodes from '../utilities/http-status-codes';
 import UserProfileService from '../services/userprofile-service';
+import JwtSignProcessor from '../utilities/jwt-sign-processor';
+import HttpStatusCodes from '../utilities/http-status-codes';
 
+const NULLIFY_PASSWORD: string = '';
 const AUTH_FAILURE: string = 'Authentication Failure';
 
 class UserProfileRouting {
     private router: express.Router;
     private userProfileService: UserProfileService = new UserProfileService();
 
-    constructor() {
+    constructor(public globalSecretKey: string) {
         this.router = express.Router();
         this.initializeRouting();
     }
@@ -34,11 +36,18 @@ class UserProfileRouting {
                     let validationStatus = await this.userProfileService.validate(userId, password);
 
                     if (validationStatus) {
+                        let userProfile = await this.userProfileService.getUserProfile(userId);
+
+                        userProfile.password = NULLIFY_PASSWORD;
+
+                        let signedToken = JwtSignProcessor.sign(userProfile, this.globalSecretKey);
+
                         response.status(HttpStatusCodes.OK).json({
-                            status: true
+                            token: signedToken
                         });
                     }
                 } catch (error) {
+                    console.log('Error Occurred : ' + error);
                     response.status(HttpStatusCodes.CLIENT_ERROR).json(AUTH_FAILURE);
                 }
             });

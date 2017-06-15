@@ -9,11 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
-const http_status_codes_1 = require("../utilities/http-status-codes");
 const userprofile_service_1 = require("../services/userprofile-service");
+const jwt_sign_processor_1 = require("../utilities/jwt-sign-processor");
+const http_status_codes_1 = require("../utilities/http-status-codes");
+const NULLIFY_PASSWORD = '';
 const AUTH_FAILURE = 'Authentication Failure';
 class UserProfileRouting {
-    constructor() {
+    constructor(globalSecretKey) {
+        this.globalSecretKey = globalSecretKey;
         this.userProfileService = new userprofile_service_1.default();
         this.router = express.Router();
         this.initializeRouting();
@@ -32,12 +35,16 @@ class UserProfileRouting {
             try {
                 let validationStatus = yield this.userProfileService.validate(userId, password);
                 if (validationStatus) {
+                    let userProfile = yield this.userProfileService.getUserProfile(userId);
+                    userProfile.password = NULLIFY_PASSWORD;
+                    let signedToken = jwt_sign_processor_1.default.sign(userProfile, this.globalSecretKey);
                     response.status(http_status_codes_1.default.OK).json({
-                        status: true
+                        token: signedToken
                     });
                 }
             }
             catch (error) {
+                console.log('Error Occurred : ' + error);
                 response.status(http_status_codes_1.default.CLIENT_ERROR).json(AUTH_FAILURE);
             }
         }));

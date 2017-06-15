@@ -30,8 +30,8 @@ class UserProfileService implements IUserProfileService {
                         break;
                     }
                 }
-
                 if (filteredUserProfile) {
+                    console.log('User Profile : ' +JSON.stringify(filteredUserProfile));
                     resolve(<UserProfile>filteredUserProfile);
                 } else {
                     reject({
